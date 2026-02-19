@@ -5,7 +5,7 @@ Cell::Cell() : candidates_(0b1111111110) {}
 
 Cell::Cell(int value) : candidates_(1 << value) {}
 
-int Cell::getValue() {
+int Cell::getValue() const {
     if (!isSolved()) {
        return 0; 
     }
@@ -13,11 +13,11 @@ int Cell::getValue() {
     return __builtin_ctz(candidates_);
 }
 
-bool Cell::isSolved() {
+bool Cell::isSolved() const {
     return candidates_ != 0 && (candidates_ & (candidates_ - 1)) == 0;
 };
 
-uint16_t Cell::getCandidates() {
+uint16_t Cell::getCandidates() const {
     return candidates_;
 }
 
@@ -32,7 +32,7 @@ bool Cell::eliminateCandidate(int digit) {
     return true;
 }
 
-bool Cell::hasCandidate(int digit) {
+bool Cell::hasCandidate(int digit) const {
     return candidates_ & (1 << digit);
 } 
 
