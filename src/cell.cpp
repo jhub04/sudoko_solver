@@ -23,7 +23,7 @@ uint16_t Cell::getCandidates() {
 
 bool Cell::eliminateCandidate(int digit) {
     // If digit not in candidates, return false
-    if (!(candidates_ & (1 << digit))) {
+    if (!hasCandidate(digit)) {
         return false;
     } 
 
@@ -31,6 +31,10 @@ bool Cell::eliminateCandidate(int digit) {
     candidates_ = candidates_ & ~(1 << digit);
     return true;
 }
+
+bool Cell::hasCandidate(int digit) {
+    return candidates_ & (1 << digit);
+} 
 
 
 
