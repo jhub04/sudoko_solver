@@ -15,3 +15,12 @@ Board::Board(const std::string& initial_state) {
     }
     
 }
+
+Cell& Board::getCell(int index) {
+    return board_[index];
+}
+
+Cell& Board::getCell(int row, int col) {
+    int index = row * 9 + col;
+    return board_[index];
+}
