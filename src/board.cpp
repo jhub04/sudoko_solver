@@ -89,3 +89,13 @@ void Board::draw() const {
         std::cout << "\n";
     }
 }
+
+bool Board::isSolved() const {
+    // Since there is no way the solution is invalid, the only thing needed is to check that all cells are filled
+    for (const Cell& cell : board_) {
+        if (!cell.isSolved()) {
+            return false;
+        }
+    }
+    return true;
+}
