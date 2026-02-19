@@ -43,3 +43,27 @@ std::array<int, 9> Board::getBoxCells(int box) const {
 
    return result;
 }
+
+std::array<int, 9> Board::getRowCells(int row) const {
+    // 0 1 2 3 4 5 6 7 8 (row 0)
+
+    std::array<int, 9> result;
+
+    for (int col = 0; col < 9; col++) {
+        result[col] = row * 9 + col;
+    }
+
+    return result;
+}
+
+std::array<int, 9> Board::getColCells(int col) const {
+    // 0 9 18 27 ... (col 0)
+    
+    std::array<int, 9> result;
+
+    for (int row = 0; row < 9; row++) {
+        result[row] = row * 9 + col;
+    }
+
+    return result;
+}
