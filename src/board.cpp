@@ -1,5 +1,6 @@
 #include "../include/board.h"
 #include <stdexcept>
+#include <iostream>
 
 Board::Board(const std::string& initial_state) {
     if (initial_state.empty()) {
@@ -66,4 +67,25 @@ std::array<int, 9> Board::getColCells(int col) const {
     }
 
     return result;
+}
+
+void Board::draw() const {
+    for (int row = 0; row < 9; row++) {
+        if (row % 3 == 0 && row != 0) {
+            std::cout << "------+-------+------\n";
+        }
+
+        for (int col = 0; col < 9; col++) {
+            if (col % 3 == 0 && col != 0) {
+                std::cout << " |";
+            }
+            Cell cell = board_[row * 9 + col];
+            if (cell.isSolved()) {
+                std::cout << " " << cell.getValue();
+            } else {
+                std::cout << " .";
+            }
+        }
+        std::cout << "\n";
+    }
 }
