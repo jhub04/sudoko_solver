@@ -8,10 +8,9 @@ class Solver {
     private:
         Board& board_;
 
-        bool solveOpenSingles();
-
+        bool propagateConstraints();
     public:
-        Solver(Board& board_);
+        Solver(Board& board);
         bool solve();
 };
 
