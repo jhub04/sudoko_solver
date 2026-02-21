@@ -36,3 +36,14 @@ bool Solver::propagateConstraints() {
 
     return progress;
 }
+
+bool Solver::solve() {
+    while (!board_.isSolved()) {
+        bool progress = false;
+        progress = progress | propagateConstraints();
+        if (!progress) {
+            return false;
+        }
+    }
+    return true;
+}
