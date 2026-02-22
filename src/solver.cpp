@@ -1,5 +1,6 @@
 #include "../include/solver.h"
 #include <array>
+#include <iostream>
 
 Solver::Solver(Board& board) : board_(board) {};
 
@@ -43,7 +44,8 @@ bool Solver::solve() {
         progress = progress | propagateConstraints();
         if (!progress) {
             return false;
-        }
+        } 
+
     }
     return true;
 }

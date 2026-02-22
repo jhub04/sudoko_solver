@@ -1,28 +1,22 @@
 #include <iostream>
-#include "../include/cell.h"
+#include "../include/board.h"
+#include "../include/solver.h"
+#include <string>
 
 int main()
 {
-    Cell cell(4);
+    std::string initial_state = "003020600900305001001806400008102900700000008006708200002609500800203009005010300";
+    Board board(initial_state);
+    
+    board.draw();
 
-    std::cout << cell.getValue() << '\n';
+    Solver solver(board);
 
-    Cell another_cell;
+    solver.solve();
 
-    std::cout << another_cell.getCandidates() << '\n'; // should be 1022
-
-    another_cell.eliminateCandidate(9);
-
-    std::cout << another_cell.getCandidates() << '\n'; // should now be 510
-    another_cell.eliminateCandidate(8);
-    another_cell.eliminateCandidate(7);
-    another_cell.eliminateCandidate(6);
-    another_cell.eliminateCandidate(5);
-    another_cell.eliminateCandidate(4);
-    another_cell.eliminateCandidate(3);
-    another_cell.eliminateCandidate(2);
-
-    std::cout << "Solved = " << another_cell.isSolved() << '\n';
+    std::cout << "\n--- Solution ---" << '\n';
+    
+    board.draw();
 }
 
 
