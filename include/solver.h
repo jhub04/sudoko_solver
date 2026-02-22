@@ -9,6 +9,7 @@ class Solver {
         Board& board_;
 
         bool propagateConstraints();
+        bool solveHiddenSingles();
     public:
         Solver(Board& board);
         bool solve();
