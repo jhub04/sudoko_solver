@@ -6,7 +6,15 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-
 add_executable(sudoku_solver src/solver.cpp src/board.cpp src/cell.cpp src/main.cpp)
 
 target_include_directories(sudoku_solver PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
+find_program(CLANG_FORMAT clang-format)
+if(CLANG_FORMAT)
+    file(GLOB_RECURSE ALL_SOURCE_FILES src/*.cpp include/*.h)
+    add_custom_target(format
+            COMMAND ${CLANG_FORMAT} -i ${ALL_SOURCE_FILES}
+            COMMENT "Running clang-format"
+    )
+endif()

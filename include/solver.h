@@ -5,14 +5,15 @@
 #include "cell.h"
 
 class Solver {
-    private:
-        Board& board_;
+private:
+  Board &board_;
 
-        bool propagateConstraints();
-        bool solveHiddenSingles();
-    public:
-        Solver(Board& board);
-        bool solve();
+  bool propagateConstraints();
+  bool solveHiddenSingles();
+
+public:
+  Solver(Board &board);
+  bool solve();
 };
 
 #endif // SOLVER_H
