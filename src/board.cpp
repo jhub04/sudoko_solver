@@ -3,6 +3,10 @@
 #include <iostream>
 
 Board::Board(const std::string& initial_state) {
+    if (initial_state.size() != 81) {
+        throw std::invalid_argument("Initial_state must be exactly 81 chars");
+    }
+
     if (initial_state.empty()) {
         throw std::invalid_argument("Initial_state can't be empty");
     } 

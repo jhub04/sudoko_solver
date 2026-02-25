@@ -1,5 +1,7 @@
 #include "../include/cell.h"
 #include <cstdint>
+#include <iostream>
+#include <bitset>
 
 Cell::Cell() : candidates_(0b1111111110) {}
 
@@ -25,16 +27,21 @@ bool Cell::eliminateCandidate(int digit) {
     // If digit not in candidates, return false
     if (!hasCandidate(digit)) {
         return false;
-    } 
+    }
+
+    if (isSolved()) {
+        return false;
+    }
 
     // Remove digit from candidates
-    candidates_ = candidates_ & ~(1 << digit);
+     candidates_ &= ~(1 << digit);
+
     return true;
 }
 
 bool Cell::hasCandidate(int digit) const {
     return candidates_ & (1 << digit);
-} 
+}
 
 
 

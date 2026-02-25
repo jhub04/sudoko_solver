@@ -42,7 +42,7 @@ bool Solver::propagateConstraints() {
 bool Solver::solveHiddenSingles() {
     bool progress = false;
 
-    auto findHiddenSingleInUnit = [&](std::array<int, 9> unit) {
+    auto findHiddenSingleInUnit = [&](std::array<int, 9> unit, std::string unitType) -> bool {
         std::unordered_map<int, int> candidateCount;
         std::unordered_map<int, int> candidateIndex;
 
@@ -63,38 +63,46 @@ bool Solver::solveHiddenSingles() {
         for (int digit = 1; digit <= 9; digit++) {
             if (candidateCount[digit] == 1) {
                 Cell& cell = board_.getCell(candidateIndex[digit]);
+
                 for (int other = 1; other <= 9; other++) {
                     if (other != digit) {
-                        if (cell.eliminateCandidate(other)) {
-                            progress = true;
-                        }
+                        cell.eliminateCandidate(other);
                     }
                 }
+
+                return true;
             }
         }
+        return false;
     };
 
+    for (int row = 0; row < 9; row++)
+        if (findHiddenSingleInUnit(board_.getRowCells(row), "row " + std::to_string(row))) return true;
 
-    for (int i = 0; i < 81; i++) {
-        int row = i / 9;
-        int col = i % 9;
-        int box = (row / 3) * 3 + (col / 3);
+    for (int col = 0; col < 9; col++)
+        if (findHiddenSingleInUnit(board_.getColCells(col), "col " + std::to_string(col))) return true;
 
-        findHiddenSingleInUnit(board_.getRowCells(row));
-        findHiddenSingleInUnit(board_.getColCells(col));
-        findHiddenSingleInUnit(board_.getBoxCells(box));
-    }
+    for (int box = 0; box < 9; box++)
+        if (findHiddenSingleInUnit(board_.getBoxCells(box), "box " + std::to_string(box))) return true;
+
     return progress;
 }
 
 bool Solver::solve() {
     while (!board_.isSolved()) {
         bool progress = false;
-        progress = progress | propagateConstraints();
-        progress = progress | solveHiddenSingles();
+
+        while (propagateConstraints()) {
+            progress = true;
+        }
+
+        if (solveHiddenSingles()) {
+            progress = true;
+        }
+
         if (!progress) {
             return false;
-        } 
+        }
     }
     return true;
 }
