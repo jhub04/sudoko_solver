@@ -14,6 +14,7 @@ public:
   int getValue() const; // returns 0 if unsolved
   bool isSolved() const;
   uint16_t getCandidates() const;
+  int getCandidateAmount() const;
 
   bool eliminateCandidate(int digit);
   bool hasCandidate(int digit) const;

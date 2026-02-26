@@ -42,7 +42,7 @@ bool Solver::propagateConstraints() {
 bool Solver::solveHiddenSingles() {
   bool progress = false;
 
-  auto findHiddenSingleInUnit = [&](std::array<int, 9> unit, std::string unitType) -> bool {
+  auto findHiddenSingleInUnit = [&](std::array<int, 9> unit) -> bool {
     std::unordered_map<int, int> candidateCount;
     std::unordered_map<int, int> candidateIndex;
 
@@ -77,25 +77,44 @@ bool Solver::solveHiddenSingles() {
   };
 
   for (int row = 0; row < 9; row++) {
-    if (findHiddenSingleInUnit(board_.getRowCells(row), "row " + std::to_string(row))) {
+    if (findHiddenSingleInUnit(board_.getRowCells(row))) {
       return true;
     }
   }
 
   for (int col = 0; col < 9; col++) {
-    if (findHiddenSingleInUnit(board_.getColCells(col), "col " + std::to_string(col))) {
+    if (findHiddenSingleInUnit(board_.getColCells(col))) {
       return true;
     }
   }
 
   for (int box = 0; box < 9; box++) {
-    if (findHiddenSingleInUnit(board_.getBoxCells(box), "box " + std::to_string(box))) {
+    if (findHiddenSingleInUnit(board_.getBoxCells(box))) {
       return true;
     }
   }
 
   return progress;
 }
+
+bool Solver::solveNakedPairs() {
+  bool progress = false;
+
+  auto findNakedPairInHouse = [&](std::array<int, 9> unit) {
+    for (int index : unit) {
+      Cell& cell = board_.getCell(index);
+      if (cell.isSolved()) {
+        continue;
+      }
+      if (cell.getCandidateAmount() != 2) {
+        continue;
+      }
+
+
+    }
+  };
+}
+
 
 bool Solver::solve() {
   while (!board_.isSolved()) {

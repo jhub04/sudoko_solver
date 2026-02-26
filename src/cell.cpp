@@ -19,6 +19,10 @@ bool Cell::isSolved() const { return candidates_ != 0 && (candidates_ & (candida
 
 uint16_t Cell::getCandidates() const { return candidates_; }
 
+int Cell::getCandidateAmount() const {
+  return __builtin_popcount(candidates_);
+}
+
 bool Cell::eliminateCandidate(int digit) {
   // If digit not in candidates, return false
   if (!hasCandidate(digit)) {

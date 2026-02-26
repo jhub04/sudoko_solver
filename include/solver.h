@@ -10,6 +10,7 @@ private:
 
   bool propagateConstraints();
   bool solveHiddenSingles();
+  bool solveNakedPairs();
 
 public:
   Solver(Board &board);
