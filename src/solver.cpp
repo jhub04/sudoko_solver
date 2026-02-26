@@ -1,7 +1,9 @@
 #include "../include/solver.h"
 #include <array>
 #include <iostream>
+#include <list>
 #include <unordered_map>
+#include <utility>
 
 Solver::Solver(Board &board) : board_(board) {};
 
@@ -100,19 +102,53 @@ bool Solver::solveHiddenSingles() {
 bool Solver::solveNakedPairs() {
   bool progress = false;
 
-  auto findNakedPairInHouse = [&](std::array<int, 9> unit) {
+  auto findNakedPairInUnit = [&](std::array<int, 9> unit) -> bool {
+    std::unordered_map<uint16_t, std::vector<int>> pair_cell_map;
     for (int index : unit) {
       Cell& cell = board_.getCell(index);
-      if (cell.isSolved()) {
-        continue;
+      if (!cell.isSolved() && cell.getCandidateAmount() == 2) {
+        pair_cell_map[cell.getCandidates()].push_back(index);
       }
-      if (cell.getCandidateAmount() != 2) {
-        continue;
-      }
-
-
     }
+
+    for (const auto& [pair, pair_cells] : pair_cell_map) {
+      if (pair_cells.size() == 2) {
+        for (int other_index : unit) {
+          if (std::find(pair_cells.begin(), pair_cells.end(), other_index) == pair_cells.end()) {
+            for (int digit = 1; digit <= 9; digit++) {
+              if (board_.getCell(pair_cells[0]).hasCandidate(digit)) {
+                if (board_.getCell(other_index).eliminateCandidate(digit)) {
+                  progress = true;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return progress;
   };
+
+  for (int row = 0; row < 9; row++) {
+    if (findNakedPairInUnit(board_.getRowCells(row))) {
+      return true;
+    }
+  }
+
+  for (int col = 0; col < 9; col++) {
+    if (findNakedPairInUnit(board_.getColCells(col))) {
+      return true;
+    }
+  }
+
+  for (int box = 0; box < 9; box++) {
+    if (findNakedPairInUnit(board_.getBoxCells(box))) {
+      return true;
+    }
+  }
+
+  return progress;
 }
 
 
@@ -125,6 +161,10 @@ bool Solver::solve() {
     }
 
     if (solveHiddenSingles()) {
+      progress = true;
+    }
+
+    if (solveNakedPairs()) {
       progress = true;
     }
 
