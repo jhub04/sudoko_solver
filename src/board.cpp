@@ -1,6 +1,7 @@
 #include "../include/board.h"
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 Board::Board(const std::string &initial_state) {
   if (initial_state.size() != 81) {
@@ -27,11 +28,7 @@ Cell &Board::getCell(int row, int col) {
   return board_[index];
 }
 
-std::array<int, 9> Board::getBoxCells(int box) const {
-  // 0 1 2 (box 0)
-  // 9 10 11
-  // 18 19 20
-
+Unit Board::getBoxCells(int box) const {
   std::array<int, 9> result;
   int start_row = (box / 3) * 3;
   int start_col = (box % 3) * 3;
@@ -46,9 +43,7 @@ std::array<int, 9> Board::getBoxCells(int box) const {
   return result;
 }
 
-std::array<int, 9> Board::getRowCells(int row) const {
-  // 0 1 2 3 4 5 6 7 8 (row 0)
-
+Unit Board::getRowCells(int row) const {
   std::array<int, 9> result;
 
   for (int col = 0; col < 9; col++) {
@@ -58,9 +53,7 @@ std::array<int, 9> Board::getRowCells(int row) const {
   return result;
 }
 
-std::array<int, 9> Board::getColCells(int col) const {
-  // 0 9 18 27 ... (col 0)
-
+Unit Board::getColCells(int col) const {
   std::array<int, 9> result;
 
   for (int row = 0; row < 9; row++) {
@@ -101,3 +94,17 @@ bool Board::isSolved() const {
   }
   return true;
 }
+
+std::vector<Unit> Board::getAllUnits() const {
+  std::vector<Unit> units;
+  units.reserve(27);
+
+  for (int i = 0; i < 9; i++) {
+    units.push_back(getRowCells(i));
+    units.push_back(getColCells(i));
+    units.push_back(getBoxCells(i));
+  }
+
+  return units;
+}
+

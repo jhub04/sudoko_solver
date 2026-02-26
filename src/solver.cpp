@@ -1,12 +1,27 @@
 #include "../include/solver.h"
-#include <array>
+#include <algorithm>
 #include <iostream>
-#include <list>
 #include <unordered_map>
-#include <utility>
+#include <vector>
 
-Solver::Solver(Board &board) : board_(board) {};
+Solver::Solver(Board &board) : board_(board) {}
 
+// Applies a per-unit solving strategy to all 27 units (rows, cols, boxes).
+// propagation can run before continuing. This eliminates the repeated
+// for-row / for-col / for-box boilerplate that every technique would need.
+bool Solver::applyToAllUnits(
+    const std::function<bool(const Unit &)> &strategy) {
+  for (const Unit &unit : board_.getAllUnits()) {
+    if (strategy(unit)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Eliminates candidates from peers of solved cells.
+// This is the most basic deduction: if a cell is solved, no other cell in
+// the same row/col/box can have that digit.
 bool Solver::propagateConstraints() {
   bool progress = false;
 
@@ -17,21 +32,17 @@ bool Solver::propagateConstraints() {
     }
 
     int digit = cell.getValue();
+    int row = i / 9;
+    int col = i % 9;
+    int box = (row / 3) * 3 + (col / 3);
 
-    auto eliminateFromUnit = [&](std::array<int, 9> unit) {
+    auto eliminateFromUnit = [&](const Unit &unit) {
       for (int index : unit) {
-        if (index == i) {
-          continue;
-        }
-        if (board_.getCell(index).eliminateCandidate(digit)) {
+        if (index != i && board_.getCell(index).eliminateCandidate(digit)) {
           progress = true;
         }
       }
     };
-
-    int row = i / 9;
-    int col = i % 9;
-    int box = (row / 3) * 3 + (col / 3);
 
     eliminateFromUnit(board_.getRowCells(row));
     eliminateFromUnit(board_.getColCells(col));
@@ -41,116 +52,73 @@ bool Solver::propagateConstraints() {
   return progress;
 }
 
-bool Solver::solveHiddenSingles() {
+bool Solver::findHiddenSingleInUnit(const Unit &unit) {
+  std::unordered_map<int, int> candidateCount;
+  std::unordered_map<int, int> candidateIndex;
+
+  for (int index : unit) {
+    const Cell &cell = board_.getCell(index);
+    if (cell.isSolved()) {
+      continue;
+    }
+
+    for (int digit = 1; digit <= 9; digit++) {
+      if (cell.hasCandidate(digit)) {
+        candidateCount[digit]++;
+        candidateIndex[digit] = index;
+      }
+    }
+  }
+
+  for (int digit = 1; digit <= 9; digit++) {
+    if (candidateCount[digit] == 1) {
+      Cell &cell = board_.getCell(candidateIndex[digit]);
+      for (int other = 1; other <= 9; other++) {
+        if (other != digit) {
+          cell.eliminateCandidate(other);
+        }
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool Solver::findNakedPairInUnit(const Unit &unit) {
   bool progress = false;
 
-  auto findHiddenSingleInUnit = [&](std::array<int, 9> unit) -> bool {
-    std::unordered_map<int, int> candidateCount;
-    std::unordered_map<int, int> candidateIndex;
+  std::unordered_map<uint16_t, std::vector<int>> pairCellMap;
+  for (int index : unit) {
+    const Cell &cell = board_.getCell(index);
+    if (!cell.isSolved() && cell.getCandidateAmount() == 2) {
+      pairCellMap[cell.getCandidates()].push_back(index);
+    }
+  }
 
-    for (int index : unit) {
-      Cell &unitCell = board_.getCell(index);
-      if (unitCell.isSolved()) {
+  for (const auto &[candidateMask, pairCells] : pairCellMap) {
+    if (pairCells.size() != 2) {
+      continue;
+    }
+
+    // Eliminate the pair's digits from all other cells in the unit
+    for (int otherIndex : unit) {
+      if (std::find(pairCells.begin(), pairCells.end(), otherIndex) !=
+          pairCells.end()) {
         continue;
       }
 
       for (int digit = 1; digit <= 9; digit++) {
-        if (unitCell.hasCandidate(digit)) {
-          candidateCount[digit]++;
-          candidateIndex[digit] = index;
+        if (board_.getCell(pairCells[0]).hasCandidate(digit) &&
+            board_.getCell(otherIndex).eliminateCandidate(digit)) {
+          progress = true;
         }
       }
-    }
-
-    for (int digit = 1; digit <= 9; digit++) {
-      if (candidateCount[digit] == 1) {
-        Cell &cell = board_.getCell(candidateIndex[digit]);
-
-        for (int other = 1; other <= 9; other++) {
-          if (other != digit) {
-            cell.eliminateCandidate(other);
-          }
-        }
-
-        return true;
-      }
-    }
-    return false;
-  };
-
-  for (int row = 0; row < 9; row++) {
-    if (findHiddenSingleInUnit(board_.getRowCells(row))) {
-      return true;
-    }
-  }
-
-  for (int col = 0; col < 9; col++) {
-    if (findHiddenSingleInUnit(board_.getColCells(col))) {
-      return true;
-    }
-  }
-
-  for (int box = 0; box < 9; box++) {
-    if (findHiddenSingleInUnit(board_.getBoxCells(box))) {
-      return true;
     }
   }
 
   return progress;
 }
-
-bool Solver::solveNakedPairs() {
-  bool progress = false;
-
-  auto findNakedPairInUnit = [&](std::array<int, 9> unit) -> bool {
-    std::unordered_map<uint16_t, std::vector<int>> pair_cell_map;
-    for (int index : unit) {
-      Cell& cell = board_.getCell(index);
-      if (!cell.isSolved() && cell.getCandidateAmount() == 2) {
-        pair_cell_map[cell.getCandidates()].push_back(index);
-      }
-    }
-
-    for (const auto& [pair, pair_cells] : pair_cell_map) {
-      if (pair_cells.size() == 2) {
-        for (int other_index : unit) {
-          if (std::find(pair_cells.begin(), pair_cells.end(), other_index) == pair_cells.end()) {
-            for (int digit = 1; digit <= 9; digit++) {
-              if (board_.getCell(pair_cells[0]).hasCandidate(digit)) {
-                if (board_.getCell(other_index).eliminateCandidate(digit)) {
-                  progress = true;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return progress;
-  };
-
-  for (int row = 0; row < 9; row++) {
-    if (findNakedPairInUnit(board_.getRowCells(row))) {
-      return true;
-    }
-  }
-
-  for (int col = 0; col < 9; col++) {
-    if (findNakedPairInUnit(board_.getColCells(col))) {
-      return true;
-    }
-  }
-
-  for (int box = 0; box < 9; box++) {
-    if (findNakedPairInUnit(board_.getBoxCells(box))) {
-      return true;
-    }
-  }
-
-  return progress;
-}
-
 
 bool Solver::solve() {
   while (!board_.isSolved()) {
@@ -160,11 +128,13 @@ bool Solver::solve() {
       progress = true;
     }
 
-    if (solveHiddenSingles()) {
+    if (applyToAllUnits(
+            [this](const Unit &unit) { return findHiddenSingleInUnit(unit); })) {
       progress = true;
     }
 
-    if (solveNakedPairs()) {
+    if (applyToAllUnits(
+            [this](const Unit &unit) { return findNakedPairInUnit(unit); })) {
       progress = true;
     }
 

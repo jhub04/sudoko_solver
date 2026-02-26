@@ -4,19 +4,24 @@
 #include "cell.h"
 #include <array>
 #include <string>
+#include <vector>
+
+using Unit = std::array<int, 9>;
 
 class Board {
 private:
   std::array<Cell, 81> board_;
 
 public:
-  Board(const std::string &initial_state);
+  explicit Board(const std::string &initial_state);
 
   Cell &getCell(int index);
   Cell &getCell(int row, int col);
-  std::array<int, 9> getBoxCells(int box) const;
-  std::array<int, 9> getRowCells(int row) const;
-  std::array<int, 9> getColCells(int col) const;
+
+  Unit getBoxCells(int box) const;
+  Unit getRowCells(int row) const;
+  Unit getColCells(int col) const;
+  std::vector<Unit> getAllUnits() const;
 
   void draw() const;
   bool isSolved() const;

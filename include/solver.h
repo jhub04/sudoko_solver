@@ -3,17 +3,21 @@
 
 #include "board.h"
 #include "cell.h"
+#include <functional>
 
 class Solver {
 private:
   Board &board_;
 
+  bool applyToAllUnits(const std::function<bool(const Unit &)> &strategy);
+
   bool propagateConstraints();
-  bool solveHiddenSingles();
-  bool solveNakedPairs();
+
+  bool findHiddenSingleInUnit(const Unit &unit);
+  bool findNakedPairInUnit(const Unit &unit);
 
 public:
-  Solver(Board &board);
+  explicit Solver(Board &board);
   bool solve();
 };
 
