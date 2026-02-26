@@ -9,7 +9,7 @@ private:
 
 public:
   Cell();
-  Cell(int value);
+  explicit Cell(int value);
 
   int getValue() const; // returns 0 if unsolved
   bool isSolved() const;
