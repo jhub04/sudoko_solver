@@ -15,6 +15,7 @@ private:
 
   bool findHiddenSingleInUnit(const Unit &unit);
   bool findNakedPairInUnit(const Unit &unit);
+  bool findNakedTripleInUnit(const Unit &unit);
 
 public:
   explicit Solver(Board &board);
