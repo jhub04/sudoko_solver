@@ -85,6 +85,39 @@ bool Solver::findHiddenSingleInUnit(const Unit &unit) {
   return false;
 }
 
+bool Solver::findHiddenPairInUnit(const Unit &unit) {
+  bool progress = false;
+  // For each digit 1-9, collect which cells in that unit contain it, but only if it appears twice
+  std::unordered_map<int, std::vector<int>> digitToCells;
+
+  for (int index : unit)  {
+    const Cell &cell = board_.getCell(index);
+    if (cell.isSolved()) {
+      continue;
+    }
+
+    for (int digit = 1; digit <= 9; digit++) {
+      if (cell.hasCandidate(digit)) {
+        digitToCells[digit].push_back(index);
+      }
+    }
+  }
+
+  for (const auto &[digit, cells] : digitToCells) {
+    if (cells.size() != 2) {
+      continue;
+    }
+
+  }
+
+
+
+  // Find two digits that appear in exactly the same two cells
+
+  // Eliminate all other candidates from those two cells
+}
+
+
 bool Solver::findNakedPairInUnit(const Unit &unit) {
   bool progress = false;
 

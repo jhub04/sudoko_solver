@@ -127,7 +127,7 @@ int main() {
 
   std::cout << "\nResults: " << solved << " solved, " << failed << " failed out of " << grids.size() << " puzzles\n";
 
-  Board board10(grids[47]);
+  Board board10(grids[5]);
   board10.draw();
 
   Solver solver10(board10);
