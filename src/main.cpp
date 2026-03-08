@@ -115,7 +115,7 @@ int main() {
 
     bool success = solver.solve();
 
-    std::cout << "Grid " << (i + 1);
+    std::cout << "Grid " << (i);
     if (success) {
       std::cout << " - Solved\n";
       solved++;
@@ -126,15 +126,6 @@ int main() {
   }
 
   std::cout << "\nResults: " << solved << " solved, " << failed << " failed out of " << grids.size() << " puzzles\n";
-
-  Board board10(grids[5]);
-  board10.draw();
-
-  Solver solver10(board10);
-  solver10.solve();
-
-  std::cout << "\n--- Partial solution ---\n";
-  board10.draw();
 
   return 0;
 }

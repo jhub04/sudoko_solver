@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 Solver::Solver(Board &board) : board_(board) {}
@@ -87,10 +88,10 @@ bool Solver::findHiddenSingleInUnit(const Unit &unit) {
 
 bool Solver::findHiddenPairInUnit(const Unit &unit) {
   bool progress = false;
-  // For each digit 1-9, collect which cells in that unit contain it, but only if it appears twice
+  // For each digit 1-9, collect which cells in that unit contain it
   std::unordered_map<int, std::vector<int>> digitToCells;
 
-  for (int index : unit)  {
+  for (int index : unit) {
     const Cell &cell = board_.getCell(index);
     if (cell.isSolved()) {
       continue;
@@ -103,18 +104,49 @@ bool Solver::findHiddenPairInUnit(const Unit &unit) {
     }
   }
 
+  // Find two digits that appear in exactly the same two cells
+  std::unordered_map<int, std::vector<int>> cellsToDigits;
   for (const auto &[digit, cells] : digitToCells) {
     if (cells.size() != 2) {
       continue;
     }
 
+    int max = (cells[0] > cells[1]) ? cells[0] : cells[1];
+    int min = (cells[0] > cells[1]) ? cells[1] : cells[0];
+
+    int key = min * 81 + max;
+
+    cellsToDigits[key].push_back(digit);
+  }
+
+  // Hidden pair: cellsToDigits has exactly two digits
+  for (const auto &[encodedCells, digits] : cellsToDigits) {
+    if (digits.size() != 2) {
+      continue;
+    }
+
+    // Hidden pair detected
+    int max = encodedCells % 81;
+    int min = (encodedCells - max) / 81;
+
+    Cell &cellOne = board_.getCell(max);
+    Cell &cellTwo = board_.getCell(min);
+
+    // Eliminate all other candidates from the pair cells
+    for (int digit = 1; digit <= 9; digit++) {
+      if (std::find(digits.begin(), digits.end(), digit) == digits.end()) {
+        if (cellOne.eliminateCandidate(digit)) {
+          progress = true;
+        }
+        if (cellTwo.eliminateCandidate(digit)) {
+          progress = true;
+        }
+      }
+    }
   }
 
 
-
-  // Find two digits that appear in exactly the same two cells
-
-  // Eliminate all other candidates from those two cells
+  return progress;
 }
 
 
@@ -206,30 +238,31 @@ bool Solver::findNakedTripleInUnit(const Unit &unit) {
 
 bool Solver::solve() {
   while (!board_.isSolved()) {
-    bool progress = false;
-
-    while (propagateConstraints()) {
-      progress = true;
+    if (propagateConstraints()) {
+      continue;
     }
 
     if (applyToAllUnits(
             [this](const Unit &unit) { return findHiddenSingleInUnit(unit); })) {
-      progress = true;
+      continue; // re-propagate before trying next strategy
     }
 
     if (applyToAllUnits(
             [this](const Unit &unit) { return findNakedPairInUnit(unit); })) {
-      progress = true;
+      continue;
     }
 
     if (applyToAllUnits(
             [this](const Unit &unit) { return findNakedTripleInUnit(unit); })) {
-      progress = true;
+      continue;
     }
 
-    if (!progress) {
-      return false;
+    if (applyToAllUnits([this](const Unit &unit) { return findHiddenPairInUnit(unit); })) {
+      continue;
     }
+
+    // No strategy made progress — puzzle cannot be solved with current techniques
+    return false;
   }
   return true;
 }
